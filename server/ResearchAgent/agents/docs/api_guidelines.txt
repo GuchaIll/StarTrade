@@ -1,0 +1,24 @@
+https://www.alphavantage.co/documentation/
+GENERAL:
+
+TIME_SERIES_DAILY
+Market News & Sentiment 
+Earnings Call Transcript 
+Insider Transactions
+Earnings Call Transcript
+
+EXPLORATORY:
+
+Top Gainers, Losers, and Most Actively Traded Tickers (US Market)
+
+PERMANENT
+Company Overview
+ETF Profile & Holdings
+INCOME_STATEMENT
+CASH_FLOW
+
+https://python-yahoofinance.readthedocs.io/en/latest/api.html
+https://finnhub.io/docs/api/press-releases
+
+
+

@@ -1,0 +1,6 @@
+Moving average crossovers: A trader enters a long position when a short-term moving average crosses above a longer-term moving average, 
+signaling a potential bullish trend
+
+Relative Strength Index (RSI): The RSI measures the speed and change of price movements. An entry signal can be generated 
+when the RSI crosses above 30, indicating a stock may be oversold and due for a rebound.
+
