@@ -10,15 +10,21 @@ const LiveChart = dynamic(() => import("../components/LiveChart"), { ssr: false 
 
 const AnalysisPage = () => {
   return (
-    <div>
-      <div className="flex p-4">
+    <div className="min-h-[calc(100vh-64px)]">
+      <div className="flex p-4 h-full">
         <div className="w-1/3 mr-4">
           <PoolBoard />
         </div>
-        <div className="w-2/3">
-          <SymbolTechnicalAnalysisPanel />
-          <SymbolAnalysisSummaryPanel />
-          <LiveChart symbol="AAPL"  />
+        <div className="w-2/3 flex flex-col gap-2 h-full">
+          <div className="flex-0">
+            <SymbolTechnicalAnalysisPanel />
+          </div>
+          <div className="flex-0">
+            <SymbolAnalysisSummaryPanel />
+          </div>
+          <div className="flex-1 overflow-auto">
+            <LiveChart symbol="AAPL" />
+          </div>
         </div>
       </div>
     </div>

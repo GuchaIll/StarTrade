@@ -11,12 +11,12 @@ const Navbar = () => {
       <div className={`navbar relative flex h-[calc(100vh-2rem)] w-full max-w-[20rem] flex-col rounded-xl bg-clip-border p-4 shadow-xl ${mode === 'dark' ? 'dark' : 'light'}`}>
         <div className="p-4 mb-2">
           <h5 className="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal">
-            Crystal Trading Bot
+            OrbitalPortfolio
           </h5>
         </div>
         <nav className="flex min-w-[240px] flex-col gap-1 p-2 font-sans text-base font-normal">
     <div className="relative block w-full">
-      <Link href="/">
+      <Link href="/home">
         <div role="button"
           className="navbar-section flex items-center w-full p-0 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
           <button type="button"
@@ -30,7 +30,7 @@ const Navbar = () => {
               </svg>
             </div>
             <p className="block mr-auto font-sans text-base antialiased font-normal leading-relaxed">
-              Dashboard
+              Home
             </p>
             <span className="ml-4">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5"

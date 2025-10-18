@@ -61,6 +61,31 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Ensure the app can create scrollable content without the page itself overflowing */
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: black;
+  color: white;
+}
+
+/* Canvas for the moving stars as the porfolio companies */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+/* root stacking context for full height app container */
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Card styles */
 .card {
   background: var(--card-background);

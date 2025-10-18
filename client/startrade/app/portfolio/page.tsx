@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import PoolBoard from '../components/Pool/PoolBoard'
 import PortfolioOverview from '../components/PortfolioOverview'

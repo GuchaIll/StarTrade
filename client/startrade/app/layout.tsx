@@ -65,17 +65,16 @@ export default async function RootLayout({
       >
         <NoFlashOfIncorrectTheme />
         <ThemeProvider>
-          {/* suppressHydrationWarning: the theme script may modify the document class
-              before React hydrates which can cause a benign mismatch; suppress warning here.
-              For a production-safe solution, provide server-side theme information (cookie)
-              or proxy the theme selection to the server so SSR and client render match. */}
-          <div className = "flex">
-            <Navbar />
-            <div className = "flex flex-col p-2 h-15 w-full">
-              <div className = "flex justify-end mb-4">
-                <LightAndDarkModeSwitch />
+          {/* Use an app-root container that spans the viewport height; make content area grow and scroll internally */}
+          <div className="app-root">
+            <div className="flex flex-1">
+              <Navbar />
+              <div className="flex flex-col flex-1 p-2 overflow-auto">
+                <div className="flex justify-end mb-4">
+                  <LightAndDarkModeSwitch />
+                </div>
+                <main className="flex-1">{children}</main>
               </div>
-              {children}
             </div>
           </div>
         </ThemeProvider>
