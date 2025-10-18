@@ -1,10 +1,26 @@
+'use client'
 import React from 'react'
+import SymbolTechnicalAnalysisPanel from '../components/SymbolTechnicalAnalysisPanel'
+import SymbolAnalysisSummaryPanel from '../components/SymbolAnalysisSummaryPanel'
+import PoolBoard from '../components/Pool/PoolBoard'
+
+import dynamic from "next/dynamic";
+
+const LiveChart = dynamic(() => import("../components/LiveChart"), { ssr: false });
 
 const AnalysisPage = () => {
   return (
     <div>
-      <h1>Analysis</h1>
-      <p>This is the analysis page.</p>
+      <div className="flex p-4">
+        <div className="w-1/3 mr-4">
+          <PoolBoard />
+        </div>
+        <div className="w-2/3">
+          <SymbolTechnicalAnalysisPanel />
+          <SymbolAnalysisSummaryPanel />
+          <LiveChart symbol="AAPL"  />
+        </div>
+      </div>
     </div>
   )
 }

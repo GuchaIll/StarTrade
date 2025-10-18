@@ -54,6 +54,14 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
     document.documentElement.classList.remove('light', 'dark')
     document.documentElement.classList.add(mode)
     document.documentElement.setAttribute('data-theme', mode)
+    // Persist theme in a cookie so server-side rendering can read it on next request
+    try {
+      const expires = new Date()
+      expires.setDate(expires.getDate() + 30)
+      document.cookie = `theme=${mode}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`
+    } catch (e) {
+      // ignore
+    }
   }, [mode, isInitialized])
 
   const toggleMode = () => {

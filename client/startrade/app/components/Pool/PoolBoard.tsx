@@ -30,8 +30,6 @@ interface PoolData {
   entries: Entry[];
 }
 
-
-
 export default function PoolBoard() {
   const [pools, setPools] = useState<PoolData[]>([
     {
@@ -126,7 +124,7 @@ export default function PoolBoard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 min-h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 ">
 
         {pools.map(pool => (
           <div key={`wrap-${pool.id}`} className="">

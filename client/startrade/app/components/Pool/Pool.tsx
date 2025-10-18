@@ -7,9 +7,10 @@ interface PoolProps {
   id: string;
   name: string;
   children?: React.ReactNode;
+  maxHeight?: number;
 }
 
-export default function Pool({ id, name, children }: PoolProps) {
+export default function Pool({ id, name, children, maxHeight }: PoolProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
   });
@@ -30,12 +31,12 @@ export default function Pool({ id, name, children }: PoolProps) {
     
     <section
       ref={setNodeRef}
-      className={`pool relative p-4 rounded-2xl h-[50vh] min-h-[220px] overflow-y-auto pb-16 transition-all duration-200 ${
+      className={`pool relative p-4 rounded-2xl h-[40vh] min-h-[120px] max-h-[240px] overflow-y-auto pb-16 transition-all duration-200 ${
         isOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-[1.02]' : ''
       }`}
     >
       <div className="flex flex-col">
-        <h2 className="pool-title mb-4 text-lg sticky top-0 bg-inherit pb-2 z-10">{name}</h2>
+        <h2 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">{name}</h2>
         <div className="pool-grid">
           {children}
         </div>

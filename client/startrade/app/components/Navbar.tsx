@@ -56,18 +56,7 @@ const Navbar = () => {
                 Analytics
               </div>
             </Link>
-            <Link href="/reporting">
-              <div role="button"
-                className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
-                <div className="grid mr-4 place-items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3"
-                    stroke="currentColor" aria-hidden="true" className="w-5 h-3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
-                  </svg>
-                </div>
-                Reporting
-              </div>
-            </Link>
+           
             
           </nav>
         </div>
