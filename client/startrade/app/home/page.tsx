@@ -15,8 +15,17 @@ interface Star {
 export default function Home() {
   const starsContainerRef = useRef<HTMLDivElement>(null);
   const [stars, setStars] = useState<Star[]>([]);
+  const [bgLoaded, setBgLoaded] = useState(false);
 
   useEffect(() => {
+  // Preload background image and trigger a smooth fade/zoom when ready
+  const img = new Image();
+  img.src = '/starry.jpg';
+    img.onload = () => {
+      // small timeout for nicer timing with other animations
+      setTimeout(() => setBgLoaded(true), 80);
+    };
+
     const starCount = 20;
     const baseRadius = 50;
     const orbitStep = 25;
@@ -92,14 +101,37 @@ export default function Home() {
   return (
     <main className="relative min-h-screen overflow-hidden flex items-center justify-center">
 
-      {/* Background layer */}
+      {/* Background layer: image fades/zooms in when loaded; gradient is fallback */}
       <div
-        className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#1a1a2e,_#000)] animate-pulse"
-        style={{
-          zIndex: -10, // sits behind everything
-          opacity: 0.6, // optional fade effect
-        }}
-      />
+        aria-hidden
+        className="absolute inset-0"
+        style={{ zIndex: -12 }}
+      >
+        {/* gradient fallback layer (always visible) */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(circle at center, #1a1a2e, #000)',
+          }}
+        />
+
+        {/* image layer - preload then fade/zoom */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url('/starry.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            transition: 'opacity 900ms ease, transform 13s ease',
+            opacity: bgLoaded ? 1 : 0,
+            transform: bgLoaded ? 'scale(1)' : 'scale(1.03)',
+            filter: bgLoaded ? 'none' : 'blur(6px)',
+            zIndex: -11,
+          }}
+        />
+      </div>
 
       {/* Stars and Core */}
       <div className="relative w-[800px] h-[800px] flex items-center justify-center z-0">

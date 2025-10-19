@@ -111,19 +111,30 @@ const SentimentVisualization = () => {
     camera.position.z = 80;
     cameraRef.current = camera;
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-    renderer.setSize(mountRef.current!.clientWidth, mountRef.current!.clientHeight);
-    mountRef.current!.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+  // Renderer setup
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  // Double pixel ratio to increase drawing buffer resolution (visually sharper)
+  const dpr = (window.devicePixelRatio || 1) * 2;
+  renderer.setPixelRatio(dpr);
+  // set size based on the mount container and double the drawing buffer
+  const mw = mountRef.current!.clientWidth;
+  const mh = mountRef.current!.clientHeight;
+  renderer.setSize(mw * 2, mh * 2, false);
+  // ensure the canvas fills the mount container and is absolutely positioned
+  renderer.domElement.style.position = 'absolute';
+  renderer.domElement.style.left = '0';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
+  mountRef.current!.appendChild(renderer.domElement);
+  rendererRef.current = renderer;
 
     // Post-processing: EffectComposer + UnrealBloomPass for bloom/glow
   const composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
     const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(mountRef.current!.clientWidth, mountRef.current!.clientHeight),
+      new THREE.Vector2(mountRef.current!.clientWidth * 2, mountRef.current!.clientHeight * 2),
       1.2, // strength
       0.6, // radius
       0.05 // threshold
@@ -161,7 +172,7 @@ const SentimentVisualization = () => {
     /*
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(
-      'https://your-cdn.com/galaxy-hdri.jpg', // Replace with your HDRI image URL
+      './outer-space-background.jpg', // Replace with your HDRI image URL
       (texture) => {
         // Create spherical environment map
         const sphereGeometry = new THREE.SphereGeometry(400, 60, 40);
@@ -253,28 +264,7 @@ const SentimentVisualization = () => {
       labelsRef.current.push(label);
       glowGroup.push(label);
 
-      // Add line connecting label to star
-      const lineMaterial = new THREE.LineBasicMaterial({ 
-        color: 0xffffff, 
-        transparent: true, 
-        opacity: 0.5 
-      });
-      const lineGeometry = new THREE.BufferGeometry();
-      const linePositions = new Float32Array(6); // 2 points * 3 coordinates
-      lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-      const line = new THREE.Line(lineGeometry, lineMaterial);
-      line.userData = {
-        targetRadius,
-        targetHeight,
-        angle,
-        delay: idx * 0.05,
-        isLine: true,
-        starIndex: idx
-      };
-      scene.add(line);
-      glowGroup.push(line);
-
-      // Store group for animation
+      // Store group for animation (no connecting line objects)
       starsRef.current.push(...glowGroup);
     });
 
@@ -339,41 +329,7 @@ const SentimentVisualization = () => {
           }
         });
 
-        // Update connecting lines (label to star)
-        starsRef.current.forEach((obj) => {
-          if (obj.userData.isLine) {
-            const delay = obj.userData.delay || 0;
-            const progress = Math.max(0, Math.min(1, (animationState.bloomProgress - delay) / (1 - delay)));
-            const easeProgress = 1 - Math.pow(1 - progress, 3);
-            
-            // Star position (end of line)
-            const starX = Math.cos(obj.userData.angle) * obj.userData.targetRadius * easeProgress;
-            const starY = obj.userData.targetHeight * easeProgress;
-            const starZ = Math.sin(obj.userData.angle) * obj.userData.targetRadius * easeProgress;
-            
-            // Label position (start of line)
-            const labelX = starX;
-            const labelY = starY + 8;
-            const labelZ = starZ;
-            
-            try {
-              const line = obj as THREE.Line;
-              const positions = (line.geometry as any).attributes.position.array as Float32Array;
-            // First point: label position
-            positions[0] = labelX;
-            positions[1] = labelY;
-            positions[2] = labelZ;
-            // Second point: star position
-            positions[3] = starX;
-            positions[4] = starY;
-            positions[5] = starZ;
-              (line.geometry as any).attributes.position.needsUpdate = true;
-              (line.material as any).opacity = 0.5 * easeProgress;
-            } catch (e) {
-              // ignore
-            }
-          }
-        });
+      // No connecting lines to update (lines removed)
       }
 
       // Rotate camera around scene
@@ -407,9 +363,12 @@ const SentimentVisualization = () => {
       if (!mountRef.current) return;
       camera.aspect = mountRef.current!.clientWidth / mountRef.current!.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(mountRef.current!.clientWidth, mountRef.current!.clientHeight);
+      const w = mountRef.current!.clientWidth;
+      const h = mountRef.current!.clientHeight;
+      // renderer drawing buffer uses doubled resolution
+      renderer.setSize(w * 2, h * 2, false);
       if (composerRef.current) {
-        composerRef.current.setSize(mountRef.current!.clientWidth, mountRef.current!.clientHeight);
+        composerRef.current.setSize(w * 2, h * 2);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -436,7 +395,8 @@ const SentimentVisualization = () => {
 
   return (
     <div className="w-full h-full bg-slate-950 relative min-h-0">
-      <div ref={mountRef} className="w-full h-full" />
+  {/* Left-side canvas container: absolute so it doesn't overlay other areas */}
+  <div ref={mountRef} className="absolute left-0 top-0 h-full w-[840px]" />
       
       {/* Legend */}
       <div className="absolute top-6 left-6 bg-slate-900/80 backdrop-blur p-4 rounded-lg text-white">

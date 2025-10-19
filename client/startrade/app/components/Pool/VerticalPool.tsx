@@ -125,17 +125,17 @@ export default function PoolBoard() {
       onDragEnd={handleDragEnd}
     >
   {/* stacked vertically; each pool limited to max-height < 200px with scroll when overflow */}
-  <div className="flex flex-col gap-6 p-6 w-full">
+  <div className="flex flex-col gap-2 p-2 w-full ">
 
         {pools.map(pool => (
           // wrapper enforces vertical stacking and max height per pool
-          <div key={`wrap-${pool.id}`} className="w-full">
+          <div key={`wrap-${pool.id}`} className="w-full ">
             <SortableContext
               key={pool.id}
               items={pool.entries.map(e => e.id)}
               strategy={rectSortingStrategy}
             >
-              <Pool id={pool.id} name={pool.name}>
+              <Pool id={pool.id} name={pool.name} >
                 {/* inner container ensures consistent spacing and fixed entry height.
                     Each entry can grow in width but not height. */}
                 <div className="flex flex-col gap-3 p-2">

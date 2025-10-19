@@ -14,7 +14,7 @@ const ExplorePage = () => {
       </div>
       <div className = "flex-3 mr-4 flex flex-col justify-between space-between">
         <SentimentVisualization />
-        <SentimentAnalysisSummary />  
+        
       </div>
         
     </div>
