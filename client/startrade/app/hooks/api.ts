@@ -69,7 +69,8 @@ class TradingAPI {
   }
 
   async getStockReport(symbol: string) {
-    const response = await this.client.get(`/api/stock/${symbol}/report`);
+    // backend exposes /api/stocks/{symbol}/report (plural 'stocks')
+    const response = await this.client.get(`/api/stocks/${symbol}/report`);
     return response.data;
   }
 

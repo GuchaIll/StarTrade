@@ -27,69 +27,90 @@ export const candleStickOptions = {
   },
 };
 
-// Small utility to turn numeric data into an SVG path for a sparkline
-function sparklinePath(data: number[], width = 300, height = 80) {
-  if (!data || data.length === 0) return "";
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const len = data.length;
-  const step = width / Math.max(1, len - 1);
-  const scaleY = (v: number) => {
-    if (max === min) return height / 2;
-    return height - ((v - min) / (max - min)) * height;
-  };
-  return data.map((d, i) => `${i === 0 ? "M" : "L"} ${i * step} ${scaleY(d)}`).join(" ");
-}
+export type ApexOHLC = { x: string | number | Date; y: [number, number, number, number] };
 
 const fetchStockData = async (symbol: string) => {
-  const key = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY ?? process.env.ALPHA_VANTAGE_KEY;
-  if (!key) throw new Error("Alpha Vantage API key is not set in environment (NEXT_PUBLIC_ALPHA_VANTAGE_KEY)");
-  const response = await fetch(
-    `https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY_ADJUSTED&symbol=${encodeURIComponent(
-      symbol
-    )}&apikey=${key}`
-  );
+  // Using Yahoo Finance API directly (no API key needed)
+  const period1 = Math.floor(Date.now() / 1000) - (180 * 24 * 60 * 60); // 6 months ago
+  const period2 = Math.floor(Date.now() / 1000); // now
+  
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${period1}&period2=${period2}&interval=1wk`;
+  
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch data: ${response.status}`);
+  }
+  
   const data = await response.json();
+  
+  if (data.chart?.error) {
+    throw new Error(data.chart.error.description || 'Yahoo Finance API error');
+  }
+  
   return data;
 };
-
-export type ApexOHLC = { x: string | number | Date; y: [number, number, number, number] };
 
 export const formatStockData = (stockData: any): ApexOHLC[] => {
   const formattedData: ApexOHLC[] = [];
 
-  const series = stockData?.["Weekly Adjusted Time Series"];
-  if (series && typeof series === "object") {
-    Object.entries(series).forEach(([key, value]) => {
-      const v: any = value;
-      const open = parseFloat(v["1. open"]);
-      const high = parseFloat(v["2. high"]);
-      const low = parseFloat(v["3. low"]);
-      const close = parseFloat(v["4. close"]);
-      if ([open, high, low, close].every((n) => Number.isFinite(n))) {
-        formattedData.push({ x: key, y: [open, high, low, close] });
+  try {
+    const result = stockData?.chart?.result?.[0];
+    if (!result) return formattedData;
+
+    const timestamps = result.timestamp || [];
+    const quotes = result.indicators?.quote?.[0];
+    
+    if (!quotes) return formattedData;
+
+    const { open, high, low, close } = quotes;
+
+    for (let i = 0; i < timestamps.length; i++) {
+      const o = open?.[i];
+      const h = high?.[i];
+      const l = low?.[i];
+      const c = close?.[i];
+      
+      // Skip if any value is null/undefined
+      if ([o, h, l, c].every((n) => n != null && Number.isFinite(n))) {
+        formattedData.push({
+          x: timestamps[i] * 1000, // Convert to milliseconds
+          y: [o, h, l, c]
+        });
       }
-    });
+    }
+  } catch (error) {
+    console.error('Error formatting stock data:', error);
   }
 
-  // sort ascending by date
-  formattedData.sort((a, b) => new Date(a.x as string).getTime() - new Date(b.x as string).getTime());
   return formattedData;
 };
 
 const LiveChart: React.FC<StockChartProps> = ({ symbol }) => {
   const [stockData, setStockData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!symbol) return;
     let cancelled = false;
+    
+    setLoading(true);
+    setError(null);
+    setStockData(null);
+    
     fetchStockData(symbol)
       .then((data) => {
-        if (!cancelled) setStockData(data);
+        if (!cancelled) {
+          setStockData(data);
+          setLoading(false);
+        }
       })
       .catch((err: any) => {
-        if (!cancelled) setError(err?.message ?? String(err));
+        if (!cancelled) {
+          setError(err?.message ?? String(err));
+          setLoading(false);
+        }
       });
 
     return () => {
@@ -99,15 +120,18 @@ const LiveChart: React.FC<StockChartProps> = ({ symbol }) => {
 
   const seriesData = useMemo(() => formatStockData(stockData), [stockData]);
 
+  if (loading) {
+    return <div className="text-sm text-neutral-400">Loading chart for {symbol}...</div>;
+  }
+
   if (error) {
-    return <div className="text-sm text-red-500">{error}</div>;
+    return <div className="text-sm text-red-500">Error: {error}</div>;
   }
 
   if (!seriesData || seriesData.length === 0) {
     return <div className="text-sm text-neutral-400">No data for {symbol}</div>;
   }
 
-  // react-apexcharts expects series: [{ data: ApexOHLC[] }]
   const series = [{ data: seriesData }];
 
   return (

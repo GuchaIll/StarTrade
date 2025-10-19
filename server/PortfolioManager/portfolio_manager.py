@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from ResearchAgent.rag.vector_store import VectorStoreManager 
 from ResearchAgent.agents.sentiment_agent import SentimentAnalysisAgent
-
+from AnalysisAgent.technical_analysis import TechnicalAnalyzer
 class PortfolioManager:
     """
     Manages portfolio data and provides methods to analyze and update the portfolio.
@@ -14,7 +14,7 @@ class PortfolioManager:
     def __init__(self, vector_store: VectorStoreManager, sentiment_agent: SentimentAnalysisAgent):
         self.vector_store = vector_store
         self.sentiment_agent = sentiment_agent
-        self.technical_analyzer = None  # TechnicalAnalyzer not available
+        self.technical_analyzer = TechnicalAnalyzer()  # Initialize TechnicalAnalyzer
     async def analyze_stock_for_entry(self, symbol: str) -> Dict:
         """
         comprehensive analysis of a stock for potential entry points
@@ -34,8 +34,16 @@ class PortfolioManager:
         news_sentiment = self.sentiment_agent.aggregate_sentiment(news_texts, source='financial')
         social_sentiment = self.sentiment_agent.aggregate_sentiment(social_texts, source='social')
 
-        technical_signals = await self.technical_analyzer.analyze(symbol)
+        # If a technical analyzer is available, try to use it. Otherwise fall back
+        # to a neutral/default technical_signals value.
         technical_signals = {'composite_score': 50}  # Default neutral score when analyzer unavailable
+        if self.technical_analyzer is not None:
+            try:
+                technical_signals = await self.technical_analyzer.analyze(symbol)
+            except Exception as e:
+                # Log and continue with default neutral technical signals
+                print(f"[portfolio_manager] technical_analyzer failed for {symbol}: {e}")
+                technical_signals = {'composite_score': 50}
         composite_score = self._calculate_composite_score(
             news_sentiment,
             social_sentiment,

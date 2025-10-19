@@ -126,5 +126,5 @@ class TechnicalAnalyzer:
     
     def load_model(self):
         import torch
-        ...
-        return model
+        
+        #return model

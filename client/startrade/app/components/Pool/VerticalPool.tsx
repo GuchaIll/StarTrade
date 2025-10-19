@@ -15,13 +15,13 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
-import Pool from './Pool';
-import PoolEntry from './PoolEntry';
+import PoolDisplay from './Pooldisplay';
 import StockDropDownSelection from '../StockDropDownSelection';
 
 interface Entry {
   id: string;
   label: string;
+  symbol?: string;
 }
 
 interface PoolData {
@@ -30,34 +30,39 @@ interface PoolData {
   entries: Entry[];
 }
 
-export default function PoolBoard() {
+interface VerticalPoolProps {
+  onSymbolSelect?: (symbol: string | null) => void;
+}
+
+export default function PoolBoard({ onSymbolSelect }: VerticalPoolProps) {
   const [pools, setPools] = useState<PoolData[]>([
     {
       id: 'portfolio-1',
       name: 'Portfolio',
       entries: [
-        { id: 'entry-a-1', label: 'Apple Stock' },
-        { id: 'entry-b-1', label: 'Tesla Inc' },
-        { id: 'entry-c-1', label: 'Microsoft' },
-        { id: 'entry-d-1', label: 'Google' },
-        { id: 'entry-e-1', label: 'Amazon' },
-        { id: 'entry-f-1', label: 'Meta' },
-        { id: 'entry-g-1', label: 'Netflix' },
-        { id: 'entry-h-1', label: 'AMD' },
-        { id: 'entry-i-1', label: 'Intel' },
+        { id: 'entry-a-1', label: 'Apple Inc', symbol: 'AAPL' },
+        { id: 'entry-b-1', label: 'Tesla Inc', symbol: 'TSLA' },
+        { id: 'entry-c-1', label: 'Microsoft', symbol: 'MSFT' },
+        { id: 'entry-d-1', label: 'Alphabet', symbol: 'GOOGL' },
+        { id: 'entry-e-1', label: 'Amazon', symbol: 'AMZN' },
+        { id: 'entry-f-1', label: 'Meta', symbol: 'META' },
+        { id: 'entry-g-1', label: 'Netflix', symbol: 'NFLX' },
+        { id: 'entry-h-1', label: 'AMD', symbol: 'AMD' },
+        { id: 'entry-i-1', label: 'Intel', symbol: 'INTC' },
       ],
     },
     {
       id: 'watchlist-1',
       name: 'Watchlist',
       entries: [
-        { id: 'entry-j-1', label: 'Bitcoin' },
-        { id: 'entry-k-1', label: 'Ethereum' },
+        { id: 'entry-j-1', label: 'Bitcoin', symbol: 'BTC' },
+        { id: 'entry-k-1', label: 'Ethereum', symbol: 'ETH' },
       ],
     },
   ]);
 
   const [activeEntry, setActiveEntry] = useState<Entry | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
    
 
@@ -123,7 +128,19 @@ export default function PoolBoard() {
       ...p,
       entries: p.entries.filter(e => e.id !== entryId),
     }));
+    // If the removed entry was selected, clear selection and notify parent
+    if (selectedEntryId === entryId) {
+      setSelectedEntryId(null);
+      if (onSymbolSelect) onSymbolSelect(null);
+    }
     setPools(updatedPools);
+  };
+
+  const handleSelectEntry = (entryId: string) => {
+    setSelectedEntryId(entryId);
+    // find the entry label and notify parent
+    const entry = findEntry(entryId);
+    if (onSymbolSelect) onSymbolSelect(entry ? (entry as any).symbol ?? entry.label : null);
   };
 
   return (
@@ -143,28 +160,10 @@ export default function PoolBoard() {
               items={pool.entries.map(e => e.id)}
               strategy={rectSortingStrategy}
             >
-              <Pool id={pool.id} name={pool.name} >
-                {/* inner container ensures consistent spacing and fixed entry height.
-                    Each entry is rendered directly as a PoolEntry (no extra tile wrapper) */}
-                <div className="flex flex-col gap-3 p-2">
-                  {pool.entries.map(entry => (
-                    <div
-                      key={entry.id}
-                      className="h-12 min-h-0 flex items-center flex-shrink-0"
-                      aria-hidden={false}
-                      style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      <div className="w-full flex items-center">
-                        <PoolEntry id={entry.id} label={entry.label} onRemove={removeEntry} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Pool>
+              <div>
+                <h3 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">{pool.name}</h3>
+                <PoolDisplay entries={pool.entries} onRemove={removeEntry} onSelect={handleSelectEntry} selectedId={selectedEntryId} />
+              </div>
             </SortableContext>
           </div>
         ))}
@@ -177,11 +176,10 @@ export default function PoolBoard() {
             items={[]}
             strategy={rectSortingStrategy}
           >
-            <Pool id={'recommendations'} name={'Recommendations'}>
-              <div className="flex flex-col gap-3 p-2">
-                {/* empty on purpose - populate as needed */}
-              </div>
-            </Pool>
+            <div>
+              <h3 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">Recommendations</h3>
+              <PoolDisplay entries={[]} />
+            </div>
           </SortableContext>
         </div>
 
