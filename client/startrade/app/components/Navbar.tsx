@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useTheme } from './ThemeContext'
+import { useAuth0 } from '@auth0/auth0-react'
 
 const Navbar = () => {
   const { mode } = useTheme()
@@ -175,18 +176,61 @@ const Navbar = () => {
         Settings
       </div>
     </Link>
-    <div role="button"
-      className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
-      <div className="grid mr-4 place-items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-          className="w-5 h-5">
-          <path fillRule="evenodd"
-            d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM6.166 5.106a.75.75 0 010 1.06 8.25 8.25 0 1011.668 0 .75.75 0 111.06-1.06c3.808 3.807 3.808 9.98 0 13.788-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788a.75.75 0 011.06 0z"
-            clipRule="evenodd"></path>
-        </svg>
-      </div>
-      Log Out
-    </div>
+    {/* Auth button: show Log In when unauthenticated, Log Out when authenticated */}
+    {(() => {
+      try {
+        const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
+        if (!isAuthenticated) {
+          return (
+            <button
+              onClick={() => loginWithRedirect()}
+              className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer"
+            >
+              <div className="grid mr-4 place-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+                  className="w-5 h-5">
+                  <path d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75z" />
+                </svg>
+              </div>
+              Log In
+            </button>
+          )
+        }
+
+        return (
+          <button
+            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer"
+          >
+            <div className="grid mr-4 place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+                className="w-5 h-5">
+                <path fillRule="evenodd"
+                  d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM6.166 5.106a.75.75 0 010 1.06 8.25 8.25 0 1011.668 0 .75.75 0 111.06-1.06c3.808 3.807 3.808 9.98 0 13.788-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788a.75.75 0 011.06 0z"
+                  clipRule="evenodd"></path>
+              </svg>
+            </div>
+            Log Out
+          </button>
+        )
+      } catch (e) {
+        // If auth context is not available, show a fallback static link
+        return (
+          <div role="button"
+            className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
+            <div className="grid mr-4 place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+                className="w-5 h-5">
+                <path fillRule="evenodd"
+                  d="M12 2.25a.75.75 0 01.75.75v9a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM6.166 5.106a.75.75 0 010 1.06 8.25 8.25 0 1011.668 0 .75.75 0 111.06-1.06c3.808 3.807 3.808 9.98 0 13.788-3.807 3.808-9.98 3.808-13.788 0-3.808-3.807-3.808-9.98 0-13.788a.75.75 0 011.06 0z"
+                  clipRule="evenodd"></path>
+              </svg>
+            </div>
+            Log Out
+          </div>
+        )
+      }
+    })()}
   </nav>
 </div>
     </div>

@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import LightAndDarkModeSwitch from "./components/LightAndDarkModeSwitch";
 import ThemeProvider from "./components/ThemeProvider";
 import NoFlashOfIncorrectTheme from "./components/NoFlashOfIncorrectTheme";
+import Auth0ClientProvider from './components/Auth0ClientProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,6 +66,7 @@ export default async function RootLayout({
       >
         <NoFlashOfIncorrectTheme />
         <ThemeProvider>
+          <Auth0ClientProvider>
           {/* Use an app-root container that spans the viewport height; make content area grow and scroll internally */}
           <div className="app-root">
             <div className="flex flex-1">
@@ -77,6 +79,7 @@ export default async function RootLayout({
               </div>
             </div>
           </div>
+          </Auth0ClientProvider>
         </ThemeProvider>
       </body>
     </html>
