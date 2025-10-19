@@ -1,11 +1,15 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { useTheme } from './ThemeContext'
 
 const Navbar = () => {
   const { mode } = useTheme()
-  
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+
+  const toggleDropdown = (menu: string) => {
+    setOpenDropdown(openDropdown === menu ? null : menu)
+  }
   return (
     <div>
       <div className={`navbar relative flex h-[calc(100vh-2rem)] w-full max-w-[20rem] flex-col rounded-xl bg-clip-border p-4 shadow-xl ${mode === 'dark' ? 'dark' : 'light'}`}>
@@ -22,12 +26,7 @@ const Navbar = () => {
           <button type="button"
             className="flex items-center justify-between w-full p-3 font-sans text-xl antialiased font-semibold leading-snug text-left transition-colors border-b-0 select-none cursor-pointer">
             <div className="grid mr-4 place-items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-                className="w-5 h-5">
-                <path fillRule="evenodd"
-                  d="M2.25 2.25a.75.75 0 000 1.5H3v10.5a3 3 0 003 3h1.21l-1.172 3.513a.75.75 0 001.424.474l.329-.987h8.418l.33.987a.75.75 0 001.422-.474l-1.17-3.513H18a3 3 0 003-3V3.75h.75a.75.75 0 000-1.5H2.25zm6.04 16.5l.5-1.5h6.42l.5 1.5H8.29zm7.46-12a.75.75 0 00-1.5 0v6a.75.75 0 001.5 0v-6zm-3 2.25a.75.75 0 00-1.5 0v3.75a.75.75 0 001.5 0V9zm-3 2.25a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5z"
-                  clipRule="evenodd"></path>
-              </svg>
+              
             </div>
             <p className="block mr-auto font-sans text-base antialiased font-normal leading-relaxed">
               Home
@@ -44,18 +43,35 @@ const Navbar = () => {
       <div className="overflow-hidden">
         <div className="block w-full py-1 font-sans text-sm antialiased font-light leading-normal">
           <nav className="flex min-w-[240px] flex-col gap-1 p-0 font-sans text-base font-normal">
-            <Link href="/analysis">
-              <div role="button"
-                className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
-                <div className="grid mr-4 place-items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3"
-                    stroke="currentColor" aria-hidden="true" className="w-5 h-3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
-                  </svg>
-                </div>
-                Analytics
+            
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('analytics')}
+                  aria-expanded={openDropdown === 'analytics'}
+                  className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer"
+                >
+                  <div className="grid mr-4 place-items-center">
+                    
+                  </div>
+                  Analytics
+                  <span className="ml-auto">
+                    <svg
+                      className={`w-4 h-4 transform transition-transform ${openDropdown === 'analytics' ? 'rotate-90' : ''}`}
+                      fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </button>
+
+                {openDropdown === 'analytics' && (
+                  <div className="ml-8 mt-1 flex flex-col space-y-1">
+                    <Link href="/analysis" className="pl-2 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Analysis</Link>
+                    <Link href="/analysis/graph" className="pl-2 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Graph</Link>
+                  </div>
+                )}
               </div>
-            </Link>
+            
            
             
           </nav>
@@ -69,12 +85,7 @@ const Navbar = () => {
           <button type="button"
             className="flex items-center justify-between w-full p-3 font-sans text-xl antialiased font-semibold leading-snug text-left transition-colors border-b-0 select-none cursor-pointer">
             <div className="grid mr-4 place-items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-                className="w-5 h-5">
-                <path fillRule="evenodd"
-                  d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 004.25 22.5h15.5a1.875 1.875 0 001.865-2.071l-1.263-12a1.875 1.875 0 00-1.865-1.679H16.5V6a4.5 4.5 0 10-9 0zM12 3a3 3 0 00-3 3v.75h6V6a3 3 0 00-3-3zm-3 8.25a3 3 0 106 0v-.75a.75.75 0 011.5 0v.75a4.5 4.5 0 11-9 0v-.75a.75.75 0 011.5 0v.75z"
-                  clipRule="evenodd"></path>
-              </svg>
+             
             </div>
             <p className="block mr-auto font-sans text-base antialiased font-normal leading-relaxed">
               Agent
@@ -91,18 +102,33 @@ const Navbar = () => {
       <div className="overflow-hidden">
         <div className="block w-full py-1 font-sans text-sm antialiased font-light leading-normal">
           <nav className="flex min-w-[240px] flex-col gap-1 p-0 font-sans text-base font-normal">
-            <Link href="/portfolio">
-              <div role="button"
-                className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() => toggleDropdown('portfolio')}
+                aria-expanded={openDropdown === 'portfolio'}
+                className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer"
+              >
                 <div className="grid mr-4 place-items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3"
-                    stroke="currentColor" aria-hidden="true" className="w-5 h-3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
-                  </svg>
+                  
                 </div>
                 Portfolio
-              </div>
-            </Link>
+                <span className="ml-auto">
+                  <svg
+                    className={`w-4 h-4 transform transition-transform ${openDropdown === 'portfolio' ? 'rotate-90' : ''}`}
+                    fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </button>
+
+              {openDropdown === 'portfolio' && (
+                <div className="ml-8 mt-1 flex flex-col space-y-1">
+                  <Link href="/portfolio/overview" className="pl-2 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Overview</Link>
+                  <Link href="/portfolio/inventory" className="pl-2 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Inventory</Link>
+                </div>
+              )}
+            </div>
             <Link href="/explore">
               <div role="button"
                 className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
@@ -119,26 +145,7 @@ const Navbar = () => {
         </div>
       </div>
     </div>
-    <Link href="/inbox">
-      <div role="button"
-        className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
-        <div className="grid mr-4 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-            className="w-5 h-5">
-            <path fillRule="evenodd"
-              d="M6.912 3a3 3 0 00-2.868 2.118l-2.411 7.838a3 3 0 00-.133.882V18a3 3 0 003 3h15a3 3 0 003-3v-4.162c0-.299-.045-.596-.133-.882l-2.412-7.838A3 3 0 0017.088 3H6.912zm13.823 9.75l-2.213-7.191A1.5 1.5 0 0017.088 4.5H6.912a1.5 1.5 0 00-1.434 1.059L3.265 12.75H6.11a3 3 0 012.684 1.658l.256.513a1.5 1.5 0 001.342.829h3.218a1.5 1.5 0 001.342-.83l.256-.512a3 3 0 012.684-1.658h2.844z"
-              clipRule="evenodd"></path>
-          </svg>
-        </div>
-        Inbox
-        <div className="grid ml-auto place-items-center justify-self-end">
-          <div
-            className="relative grid items-center px-2 py-1 font-sans text-xs font-bold uppercase rounded-full select-none whitespace-nowrap bg-red-500 text-white">
-            <span className="">14</span>
-          </div>
-        </div>
-      </div>
-    </Link>
+    
     <Link href="/profile">
       <div role="button"
         className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">

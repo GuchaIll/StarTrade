@@ -77,6 +77,8 @@ canvas {
   top: 0;
   left: 0;
   z-index: 0;
+  /* Don't block clicks on UI that sits above the canvas */
+  pointer-events: none;
 }
 
 /* root stacking context for full height app container */
@@ -102,6 +104,9 @@ canvas {
   border-right: 1px solid var(--border);
   box-shadow: 2px 0 4px var(--shadow);
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  /* Ensure the navbar appears above the full-screen canvas */
+  position: relative;
+  z-index: 50;
 }
 
 .navbar-item {

@@ -1,4 +1,5 @@
-'use client';
+"use client";
+import React from 'react'
 import { useDroppable } from '@dnd-kit/core';
 import { useState } from 'react';
 import StockDropDownSelection from '../StockDropDownSelection';
@@ -37,8 +38,12 @@ export default function Pool({ id, name, children, maxHeight }: PoolProps) {
     >
       <div className="flex flex-col">
         <h2 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">{name}</h2>
-        <div className="pool-grid">
-          {children}
+        <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-min">
+          {React.Children.map(children, (child, i) => (
+            <div key={i} className="min-w-0 w-full">
+              {child}
+            </div>
+          ))}
         </div>
 
         {/* Button placed at the bottom center of the pool. Kept inside the pool so it visually sits in the container,

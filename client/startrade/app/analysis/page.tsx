@@ -4,13 +4,11 @@ import SymbolTechnicalAnalysisPanel from '../components/SymbolTechnicalAnalysisP
 import SymbolAnalysisSummaryPanel from '../components/SymbolAnalysisSummaryPanel'
 import PoolBoard from '../components/Pool/PoolBoard'
 
-import dynamic from "next/dynamic";
 
-const LiveChart = dynamic(() => import("../components/LiveChart"), { ssr: false });
 
 const AnalysisPage = () => {
   return (
-    <div className="min-h-[calc(100vh-64px)]">
+   
       <div className="flex p-4 h-full">
         <div className="w-1/3 mr-4">
           <PoolBoard />
@@ -22,12 +20,10 @@ const AnalysisPage = () => {
           <div className="flex-0">
             <SymbolAnalysisSummaryPanel />
           </div>
-          <div className="flex-1 overflow-auto">
-            <LiveChart symbol="AAPL" />
-          </div>
+          
         </div>
       </div>
-    </div>
+  
   )
 }
 

@@ -1,54 +1,45 @@
-'user client'
 "use client"
+
 import React from 'react'
-import type { ApexOptions } from 'apexcharts';
-import dynamic from "next/dynamic";
+import type { ApexOptions } from 'apexcharts'
+import dynamic from 'next/dynamic'
 
-const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
+const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
-// Dummy data for stock portfolio composition 
-const stockPortfolio = {
-    'AAPL': 50,
-    'MSFT': 30,
-    'GOOGL': 20,
-    'AMZN': 10,
-    'TSLA': 15
-}
+// Dummy data for stock portfolio composition
+const labels = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
+const series = [50, 30, 20, 10, 15]
 
 const PortfolioComposition: React.FC = () => {
-  const [state] = React.useState<{
-    series: number[];
-    options: ApexOptions;
-  }>({
-    series: [44, 55, 41, 17, 15],
-    options: {
-      chart: {
-        type: 'donut',
-      },
-      responsive: [
-        {
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 200,
-            },
-            legend: {
-              position: 'bottom',
-            },
-          },
-        },
-      ],
+  const options: ApexOptions = {
+    chart: {
+      type: 'donut',
+      toolbar: { show: false },
+      animations: { enabled: false },
     },
-  });
+    labels,
+    legend: {
+      position: 'bottom',
+      horizontalAlign: 'center',
+    },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          legend: { position: 'bottom' },
+        },
+      },
+    ],
+  }
 
+  // The parent container should control height; set chart height to 100% so it fills available space
   return (
-    <div>
-      <div id="chart">
-        <ReactApexChart options={state.options} series={state.series} type="donut" />
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full max-h-full" style={{ minHeight: 0 }}>
+        <ReactApexChart options={options} series={series} type="donut" height="100%" />
       </div>
-      <div id="html-dist"></div>
     </div>
-  );
-};
+  )
+}
 
-export default PortfolioComposition;
+export default PortfolioComposition
