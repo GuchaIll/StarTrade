@@ -5,7 +5,58 @@ import requests
 import asyncio
 import aiohttp
 import redis
-from pyrate_limiter import Limiter, RequestRate, Duration, BucketFullException
+try:
+    from pyrate_limiter import Limiter, RequestRate, Duration, BucketFullException
+    _HAVE_PYRATE = True
+except Exception:
+    # Provide a lightweight fallback if pyrate_limiter's API isn't available in the environment.
+    _HAVE_PYRATE = False
+    class BucketFullException(Exception):
+        pass
+
+    import collections, time, asyncio
+
+    class SimpleRateLimiter:
+        """A tiny async rate limiter compatible with the ratelimit(name, delay=True) usage.
+
+        This is a sliding window limiter that allows `capacity` requests per `per_seconds`.
+        It's intentionally simple and robust for development/testing environments.
+        """
+        def __init__(self, capacity: int, per_seconds: int = 60):
+            self.capacity = int(capacity)
+            self.per_seconds = per_seconds
+            self.timestamps = collections.deque()
+            self.lock = asyncio.Lock()
+
+        def ratelimit(self, name: str, delay: bool = True):
+            limiter = self
+
+            class _Ctx:
+                async def __aenter__(self_inner):
+                    while True:
+                        async with limiter.lock:
+                            now = time.time()
+                            # remove expired timestamps
+                            while limiter.timestamps and now - limiter.timestamps[0] >= limiter.per_seconds:
+                                limiter.timestamps.popleft()
+
+                            if len(limiter.timestamps) < limiter.capacity:
+                                limiter.timestamps.append(now)
+                                return
+
+                            if not delay:
+                                raise BucketFullException('Rate limit exceeded')
+
+                            # compute wait time until oldest timestamp expires
+                            wait = limiter.per_seconds - (now - limiter.timestamps[0])
+                        # wait outside of lock
+                        await asyncio.sleep(max(wait, 0.01))
+
+                async def __aexit__(self_inner, exc_type, exc, tb):
+                    return False
+
+            return _Ctx()
+
 from datetime import datetime, timedelta
 
 @dataclass
@@ -22,18 +73,22 @@ class BaseIngestionAgent(ABC):
     
     def __init__(self, source: DataSource):
         self.source = source
-        self.rate_limiter = Limiter(RequestRate(source.rate_limit, Duration.MINUTE))
+        if _HAVE_PYRATE:
+            self.rate_limiter = Limiter(RequestRate(source.rate_limit, Duration.MINUTE))
+        else:
+            # fallback: capacity per minute
+            self.rate_limiter = SimpleRateLimiter(capacity=source.rate_limit, per_seconds=60)
         self.cache = redis.Redis(host='localhost', port=6379, db=0)
         self.error_handler = lambda e: print(f"Error: {e}")
     
     @abstractmethod
-    def fetch_data(self, symbols: List[str], days_back: int) -> List[Dict[str, Any]]:
+    def fetch_data(self, symbols: Any, days_back: int) -> Any:
         """Fetch data from the configured source."""
         pass
 
 
     @abstractmethod
-    def parse_response(self, raw_data: Dict [str], start_date: datetime) -> List[Dict]:
+    def parse_response(self, raw_data: Dict[str, Any], start_date: datetime) -> Any:
         """Parse raw data into structured format."""
         pass
 

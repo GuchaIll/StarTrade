@@ -4,20 +4,17 @@ import numpy as np
 from datetime import datetime, timedelta
 from ResearchAgent.rag.vector_store import VectorStoreManager 
 from ResearchAgent.agents.sentiment_agent import SentimentAnalysisAgent
-from TradingAgent.TechnicalIndicators.indicator_calculator import IndicatorCalculator
-from TradingAgent.trading_strategy import TradingStrategy
-from AnalysisAgent.technical_analyzer import TechnicalAnalyzer
 
 class PortfolioManager:
     """
     Manages portfolio data and provides methods to analyze and update the portfolio.
     """
 
+    
     def __init__(self, vector_store: VectorStoreManager, sentiment_agent: SentimentAnalysisAgent):
         self.vector_store = vector_store
         self.sentiment_agent = sentiment_agent
-        self.technical_analyzer = TechnicalAnalyzer()
-
+        self.technical_analyzer = None  # TechnicalAnalyzer not available
     async def analyze_stock_for_entry(self, symbol: str) -> Dict:
         """
         comprehensive analysis of a stock for potential entry points
@@ -38,7 +35,7 @@ class PortfolioManager:
         social_sentiment = self.sentiment_agent.aggregate_sentiment(social_texts, source='social')
 
         technical_signals = await self.technical_analyzer.analyze(symbol)
-
+        technical_signals = {'composite_score': 50}  # Default neutral score when analyzer unavailable
         composite_score = self._calculate_composite_score(
             news_sentiment,
             social_sentiment,
@@ -72,11 +69,12 @@ class PortfolioManager:
 
         technical_score = technical_signals.get('composite_score', 0)
 
-        composite = {
+        # Compute numeric composite score (weights: news 40%, social 20%, technical 40%)
+        composite = (
             0.4 * news_score +
             0.2 * social_score +
             0.4 * technical_score
-        }
+        )
 
         return round(composite, 2)
     

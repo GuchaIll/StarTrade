@@ -7,7 +7,7 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from models.models import ChatRequest, ChatResponse, StockAnalysisRequest, PortfolioRequest
-from server.scheduler import TradingSystemOrchestrator, screen_new_stocks
+from scheduler import TradingSystemOrchestrator, screen_new_stocks
 
 load_dotenv()
 
@@ -63,7 +63,7 @@ async def analyze_stock(request: StockAnalysisRequest):
         )
         return analysis
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e, "failed to generate comprehensive stock analysis"))
+        raise HTTPException(status_code=500, detail=f"failed to generate comprehensive stock analysis: {e}")
 
 
 @app.post("/api/analyze/portfolio")
@@ -75,7 +75,7 @@ async def analyze_portfolio(request: PortfolioRequest):
         )
         return analysis
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e, "failed to generate comprehensive portfolio overview"))
+        raise HTTPException(status_code=500, detail=f"failed to generate comprehensive portfolio overview: {e}")
 
 @app.get("/api/stocks/{symbol}/report")
 async def get_stock_report(symbol: str):
@@ -84,7 +84,7 @@ async def get_stock_report(symbol: str):
         analysis = await orchestrator.portfolio_manager.analyze_stock_for_entry(symbol)
         return analysis
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e, f"failed to get report for {symbol}"))
+        raise HTTPException(status_code=500, detail=f"failed to get report for {symbol}: {e}")
 
 @app.get("/api/news/{symbol}")
 async def get_recent_news(symbol: str, hours: int = 24):
@@ -98,7 +98,7 @@ async def get_recent_news(symbol: str, hours: int = 24):
 
         return {'symbol': symbol, 'news': news}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e, f"failed to get recent news for {symbol}"))
+        raise HTTPException(status_code=500, detail=f"failed to get recent news for {symbol}: {e}")
     
 @app.post("/api/screen")
 async def screen_stocks(symbols: List[str], min_score: float = 65):
@@ -111,7 +111,7 @@ async def screen_stocks(symbols: List[str], min_score: float = 65):
         )
         return {'recommendations': recommendations}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e, "failed to screen stocks"))
+        raise HTTPException(status_code=500, detail=f"failed to screen stocks: {e}")
     
 ##Web socket for real-time updates
 @app.websocket("/ws/updates")

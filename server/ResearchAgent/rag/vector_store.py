@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 import numpy as np
-from sentence_transformer import SentenceTransformer
+from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone, ServerlessSpec
 from datetime import datetime, timedelta
 import hashlib
@@ -28,12 +28,10 @@ class VectorStoreManager:
 
         self.index = self.pc.Index(index_name)
 
-
-        #Initialize embedding mode
+        # Initialize embedding model
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-
-        #structure Metadata
+        # structure Metadata
         self.metadata_schema = {
             'symbol': str,
             'source': str,
@@ -47,9 +45,10 @@ class VectorStoreManager:
             'relevance_score': float
         }
 
-    def generate_embedding(self, test: str) -> np.ndarray:
+    def generate_embedding(self, text: str) -> np.ndarray:
         """Generate embedding for text"""
-        return self.embedding_model.encoder(text, convert_to_numpy = True)
+        # SentenceTransformer provides an `encode` method which can return numpy arrays
+        return self.embedding_model.encode(text, convert_to_numpy=True)
 
     def create_document_id(self, content: str, symbol: str, timestamp: str) -> str:
         unique_string = f"{symbol}_{content[:100]}_{timestamp}"
@@ -92,7 +91,7 @@ class VectorStoreManager:
                 'title': doc.get('title', ''),
                 'content': doc.get('content', ''),
                 'url': doc.get('url', ''),
-                'timestamp': doc.get('timestamp', datetime.utcnow().isoformat()),
+                'timestamp': doc.get('timestamp', datetime.now().isoformat()),
                 'sentiment': doc.get('sentiment', ''),
                 'sentiment_score': doc.get('sentiment_score', 0.0),
                 'relevance_score': doc.get('relevance_score', 0.0)

@@ -10,9 +10,7 @@ yfinance
 redis
 aiohttp
 pyrate-limiter
-asyncio
 ntscraper
 numpy
 transformers
 pinecone
-hashlib

@@ -39,7 +39,7 @@ class ArticleScorer:
         publish_data = article.get('published_date')
         if not publish_data:
             return 0.0
-        day_old = (datetime.utcnow() - publish_data).days
+        day_old = (datetime.now() - publish_data).days
         return 1.0 / (1.0 + day_old)
 
     def popularity_score(self, article: Dict) -> float:

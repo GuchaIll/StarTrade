@@ -4,12 +4,11 @@ from datetime import datetime, timedelta
 import asyncio
 from typing import Dict, List
 
-from server.ResearchAgent.agents.data_ingestion_agent import AlphaVantageAgent, DataSource, TwitterAgent, YFinanceAgent
-from server.ResearchAgent.agents.sentiment_agent import SentimentAnalysisAgent
-from server.ResearchAgent.rag.vector_store import VectorStoreManager
-from server.PortfolioManager.portfolio_manager import PortfolioManager
-from server.AnalysisAgent.technical_analysis import TechnicalAnalysisAgent
-from server.LLMAgent.investment_advisor_agent import InvestmentAdvisorAgent
+from ResearchAgent.agents.data_ingestion_agent import AlphaVantageAgent, DataSource, TwitterAgent, YFinanceAgent
+from ResearchAgent.agents.sentiment_agent import SentimentAnalysisAgent
+from ResearchAgent.rag.vector_store import VectorStoreManager
+from PortfolioManager.portfolio_manager import PortfolioManager
+from LLMAgent.investment_advisor_agent import InvestmentAdvisorAgent
 
 class TradingSystemOrchestrator:
     """Orchestrates all agents and data flows within the trading system"""
@@ -130,10 +129,29 @@ async def screen_new_stocks(
     return recommendations
 
 #Research Agents automatically updates periodically
+def _make_concurrent_task_runner(max_concurrent_tasks: int = 10):
+    """Try common constructor argument names across Prefect versions.
+
+    Returns a ConcurrentTaskRunner instance. If none of the common
+    kwarg names are supported, returns a default ConcurrentTaskRunner().
+    """
+    try:
+        return ConcurrentTaskRunner(max_concurrent_tasks=max_concurrent_tasks)
+    except TypeError:
+        try:
+            return ConcurrentTaskRunner(limit=max_concurrent_tasks)
+        except TypeError:
+            try:
+                return ConcurrentTaskRunner(max_workers=max_concurrent_tasks)
+            except TypeError:
+                # Last resort: default
+                return ConcurrentTaskRunner()
+
+
 @flow(
-    name="Trading System Daily Update", 
-    task_runner=ConcurrentTaskRunner(max_concurrent_tasks=10),
-    description = "Daily data ingestion, analysis, and portfolio updates"
+    name="Trading System Daily Update",
+    task_runner=_make_concurrent_task_runner(10),
+    description="Daily data ingestion, analysis, and portfolio updates",
 )
 async def daily_trading_system_update(
     orchestrator: TradingSystemOrchestrator,
@@ -208,7 +226,7 @@ def schedule_trading_system():
     Schedule the trading system daily update flow
     """
     from prefect.deployments import Deployment
-    from prefect.server.schemas.schedules import CronSchedule
+    from prefect.schemas.schedules import CronSchedule
 
     deployment = Deployment.build_from_flow(
         flow = daily_trading_system_update,
