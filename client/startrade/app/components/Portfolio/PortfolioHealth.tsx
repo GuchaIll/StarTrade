@@ -10,12 +10,11 @@ const PortfolioHealth: React.FC = () => {
   ]
 
   return (
-    <div className="flex w-full h-full items-center">
-      <div className="flex-shrink-0 w-24 h-24 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-2xl">
+    <div className="flex w-full h-full flex-col items-center justify-center text-center">
+      <div className="flex-shrink-0 w-28 h-28 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-2xl">
         {score}
       </div>
-      <div className="ml-4">
-        <h3 className="text-lg font-semibold">Portfolio Health</h3>
+      <div className="mt-3">
         <ul className="mt-2 text-sm space-y-1">
           {details.map((d, i) => (
             <li key={i} className="text-gray-700 dark:text-gray-200">{d}</li>

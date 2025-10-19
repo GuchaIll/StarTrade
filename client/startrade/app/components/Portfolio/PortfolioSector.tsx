@@ -17,13 +17,14 @@ const PortfolioSector: React.FC = () => {
     },
     labels: sectorLabels,
     legend: {
-      position: 'bottom',
+      position: 'right',
+      horizontalAlign: 'center',
     },
     responsive: [
       {
         breakpoint: 640,
         options: {
-          chart: { height: 200 },
+          chart: { height: 220 },
           legend: { position: 'bottom' },
         },
       },
@@ -31,8 +32,8 @@ const PortfolioSector: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="w-full h-full" style={{ minHeight: 0 }}>
+    <div className="w-full h-full flex items-center justify-center" style={{ minHeight: 0 }}>
+      <div className="w-full h-full" style={{ minHeight: 0, minWidth: 0 }}>
         <ReactApexChart options={options} series={sectorSeries} type="pie" height="100%" />
       </div>
     </div>

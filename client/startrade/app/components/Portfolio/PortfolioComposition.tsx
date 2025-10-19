@@ -19,23 +19,25 @@ const PortfolioComposition: React.FC = () => {
     },
     labels,
     legend: {
-      position: 'bottom',
+      position: 'right',
       horizontalAlign: 'center',
+      floating: false,
+      labels: { useSeriesColors: true },
     },
     responsive: [
       {
         breakpoint: 640,
         options: {
           legend: { position: 'bottom' },
+          chart: { height: 220 },
         },
       },
     ],
   }
 
-  // The parent container should control height; set chart height to 100% so it fills available space
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="w-full h-full max-h-full" style={{ minHeight: 0 }}>
+    <div className="w-full h-full flex items-center justify-center" style={{ minHeight: 0 }}>
+      <div className="w-full h-full" style={{ minHeight: 0, minWidth: 0 }}>
         <ReactApexChart options={options} series={series} type="donut" height="100%" />
       </div>
     </div>

@@ -76,7 +76,7 @@ export default function PoolBoard() {
     return null;
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = (event:  DragStartEvent) => {
     const entry = findEntry(event.active.id as string);
     setActiveEntry(entry);
   };

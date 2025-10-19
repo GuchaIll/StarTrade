@@ -40,6 +40,26 @@ const Navbar = () => {
           </button>
         </div>
       </Link>
+      <Link href="/agent">
+        <div role="button"
+          className="navbar-section flex items-center w-full p-0 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
+          <button type="button"
+            className="flex items-center justify-between w-full p-3 font-sans text-xl antialiased font-semibold leading-snug text-left transition-colors border-b-0 select-none cursor-pointer">
+            <div className="grid mr-4 place-items-center">
+             
+            </div>
+            <p className="block mr-auto font-sans text-base antialiased font-normal leading-relaxed">
+              Agent
+            </p>
+            <span className="ml-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5"
+                stroke="currentColor" aria-hidden="true" className="w-4 h-4 mx-auto transition-transform">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </Link>
       <div className="overflow-hidden">
         <div className="block w-full py-1 font-sans text-sm antialiased font-light leading-normal">
           <nav className="flex min-w-[240px] flex-col gap-1 p-0 font-sans text-base font-normal">
@@ -79,26 +99,7 @@ const Navbar = () => {
       </div>
     </div>
     <div className="relative block w-full">
-      <Link href="/agent">
-        <div role="button"
-          className="navbar-section flex items-center w-full p-0 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer">
-          <button type="button"
-            className="flex items-center justify-between w-full p-3 font-sans text-xl antialiased font-semibold leading-snug text-left transition-colors border-b-0 select-none cursor-pointer">
-            <div className="grid mr-4 place-items-center">
-             
-            </div>
-            <p className="block mr-auto font-sans text-base antialiased font-normal leading-relaxed">
-              Agent
-            </p>
-            <span className="ml-4">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5"
-                stroke="currentColor" aria-hidden="true" className="w-4 h-4 mx-auto transition-transform">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </Link>
+      
       <div className="overflow-hidden">
         <div className="block w-full py-1 font-sans text-sm antialiased font-light leading-normal">
           <nav className="flex min-w-[240px] flex-col gap-1 p-0 font-sans text-base font-normal">
