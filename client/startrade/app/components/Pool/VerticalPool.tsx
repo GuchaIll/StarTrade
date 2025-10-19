@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DndContext,
   closestCorners,
@@ -32,39 +32,54 @@ interface PoolData {
 
 interface VerticalPoolProps {
   onSymbolSelect?: (symbol: string | null) => void;
+  onPortfolioChange?: (pools: PoolData[]) => void;
+  initialData?: PoolData[] | null;
 }
 
-export default function PoolBoard({ onSymbolSelect }: VerticalPoolProps) {
-  const [pools, setPools] = useState<PoolData[]>([
-    {
-      id: 'portfolio-1',
-      name: 'Portfolio',
-      entries: [
-        { id: 'entry-a-1', label: 'Apple Inc', symbol: 'AAPL' },
-        { id: 'entry-b-1', label: 'Tesla Inc', symbol: 'TSLA' },
-        { id: 'entry-c-1', label: 'Microsoft', symbol: 'MSFT' },
-        { id: 'entry-d-1', label: 'Alphabet', symbol: 'GOOGL' },
-        { id: 'entry-e-1', label: 'Amazon', symbol: 'AMZN' },
-        { id: 'entry-f-1', label: 'Meta', symbol: 'META' },
-        { id: 'entry-g-1', label: 'Netflix', symbol: 'NFLX' },
-        { id: 'entry-h-1', label: 'AMD', symbol: 'AMD' },
-        { id: 'entry-i-1', label: 'Intel', symbol: 'INTC' },
-      ],
-    },
-    {
-      id: 'watchlist-1',
-      name: 'Watchlist',
-      entries: [
-        { id: 'entry-j-1', label: 'Bitcoin', symbol: 'BTC' },
-        { id: 'entry-k-1', label: 'Ethereum', symbol: 'ETH' },
-      ],
-    },
-  ]);
+const defaultPools: PoolData[] = [
+  {
+    id: 'portfolio-1',
+    name: 'Portfolio',
+    entries: [
+      { id: 'entry-a-1', label: 'Apple Inc', symbol: 'AAPL' },
+      { id: 'entry-b-1', label: 'Tesla Inc', symbol: 'TSLA' },
+      { id: 'entry-c-1', label: 'Microsoft', symbol: 'MSFT' },
+      { id: 'entry-d-1', label: 'Alphabet', symbol: 'GOOGL' },
+      { id: 'entry-e-1', label: 'Amazon', symbol: 'AMZN' },
+      { id: 'entry-f-1', label: 'Meta', symbol: 'META' },
+      { id: 'entry-g-1', label: 'Netflix', symbol: 'NFLX' },
+      { id: 'entry-h-1', label: 'AMD', symbol: 'AMD' },
+      { id: 'entry-i-1', label: 'Intel', symbol: 'INTC' },
+    ],
+  },
+  {
+    id: 'watchlist-1',
+    name: 'Watchlist',
+    entries: [
+      { id: 'entry-j-1', label: 'Bitcoin', symbol: 'BTC' },
+      { id: 'entry-k-1', label: 'Ethereum', symbol: 'ETH' },
+    ],
+  },
+];
 
+export default function PoolBoard({ onSymbolSelect, onPortfolioChange, initialData }: VerticalPoolProps) {
+  const [pools, setPools] = useState<PoolData[]>(initialData || defaultPools);
   const [activeEntry, setActiveEntry] = useState<Entry | null>(null);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
 
-   
+  // Update pools when initialData changes (on load from storage)
+  useEffect(() => {
+    if (initialData) {
+      setPools(initialData);
+    }
+  }, [initialData]);
+
+  // Notify parent whenever pools change
+  useEffect(() => {
+    if (onPortfolioChange) {
+      onPortfolioChange(pools);
+    }
+  }, [pools, onPortfolioChange]);
 
   const findPool = (entryId: string) => {
     for (const pool of pools) {
@@ -81,7 +96,7 @@ export default function PoolBoard({ onSymbolSelect }: VerticalPoolProps) {
     return null;
   };
 
-  const handleDragStart = (event:  DragStartEvent) => {
+  const handleDragStart = (event: DragStartEvent) => {
     const entry = findEntry(event.active.id as string);
     setActiveEntry(entry);
   };
@@ -89,7 +104,7 @@ export default function PoolBoard({ onSymbolSelect }: VerticalPoolProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveEntry(null);
-    
+
     if (!over) return;
 
     const sourcePool = findPool(active.id as string);
@@ -144,58 +159,60 @@ export default function PoolBoard({ onSymbolSelect }: VerticalPoolProps) {
   };
 
   return (
-    <DndContext
-      collisionDetection={rectIntersection}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-  {/* stacked vertically; each pool limited to max-height < 200px with scroll when overflow */}
-  <div className="flex flex-col gap-2 p-2 w-full ">
+      <DndContext
+          collisionDetection={rectIntersection}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+      >
+        {/* stacked vertically; each pool limited to max-height < 200px with scroll when overflow */}
+        <div className="flex flex-col gap-2 p-2 w-full">
+          {pools.map(pool => (
+              // wrapper enforces vertical stacking and max height per pool
+              <div key={`wrap-${pool.id}`} className="w-full">
+                <SortableContext
+                    key={pool.id}
+                    items={pool.entries.map(e => e.id)}
+                    strategy={rectSortingStrategy}
+                >
+                  <div>
+                    <h3 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">{pool.name}</h3>
+                    <PoolDisplay
+                        entries={pool.entries}
+                        onRemove={removeEntry}
+                        onSelect={handleSelectEntry}
+                        selectedId={selectedEntryId}
+                    />
+                  </div>
+                </SortableContext>
+              </div>
+          ))}
 
-        {pools.map(pool => (
-          // wrapper enforces vertical stacking and max height per pool
-          <div key={`wrap-${pool.id}`} className="w-full ">
+          {/* Bottom full-width pool - third pool in the vertical stack */}
+          <div className="w-full">
             <SortableContext
-              key={pool.id}
-              items={pool.entries.map(e => e.id)}
-              strategy={rectSortingStrategy}
+                key={'bottom-pool'}
+                items={[]}
+                strategy={rectSortingStrategy}
             >
               <div>
-                <h3 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">{pool.name}</h3>
-                <PoolDisplay entries={pool.entries} onRemove={removeEntry} onSelect={handleSelectEntry} selectedId={selectedEntryId} />
+                <h3 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">Recommendations</h3>
+                <PoolDisplay entries={[]} />
               </div>
             </SortableContext>
           </div>
-        ))}
-
-   
-        {/* Bottom full-width pool - third pool in the vertical stack */}
-  <div className="w-full">
-          <SortableContext
-            key={'bottom-pool'}
-            items={[]}
-            strategy={rectSortingStrategy}
-          >
-            <div>
-              <h3 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">Recommendations</h3>
-              <PoolDisplay entries={[]} />
-            </div>
-          </SortableContext>
         </div>
 
-  </div>
-      
-      {/* Drag overlay - ensures visibility when dragging outside containers */}
-      {typeof window !== 'undefined' && createPortal(
-        <DragOverlay className="drag-overlay">
-          {activeEntry ? (
-            <div className="bg-white/5 px-3 py-2 rounded-md flex items-center justify-between min-h-[36px]">
-              <span className="text-sm font-medium truncate">{activeEntry.label}</span>
-            </div>
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
+        {/* Drag overlay - ensures visibility when dragging outside containers */}
+        {typeof window !== 'undefined' && createPortal(
+            <DragOverlay className="drag-overlay">
+              {activeEntry ? (
+                  <div className="bg-white/5 px-3 py-2 rounded-md flex items-center justify-between min-h-[36px]">
+                    <span className="text-sm font-medium truncate">{activeEntry.label}</span>
+                  </div>
+              ) : null}
+            </DragOverlay>,
+            document.body
+        )}
+      </DndContext>
   );
 }

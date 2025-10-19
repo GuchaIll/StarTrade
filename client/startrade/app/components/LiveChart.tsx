@@ -24,30 +24,26 @@ export const candleStickOptions = {
     tooltip: {
       enabled: true,
     },
+    labels: {
+      formatter: function(val: number) {
+        return val.toFixed(2);
+      }
+    }
   },
 };
 
 export type ApexOHLC = { x: string | number | Date; y: [number, number, number, number] };
 
 const fetchStockData = async (symbol: string) => {
-  // Using Yahoo Finance API directly (no API key needed)
-  const period1 = Math.floor(Date.now() / 1000) - (180 * 24 * 60 * 60); // 6 months ago
-  const period2 = Math.floor(Date.now() / 1000); // now
-  
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${period1}&period2=${period2}&interval=1wk`;
-  
-  const response = await fetch(url);
-  
+  // Call our Next.js API route which will proxy to Yahoo Finance
+  const response = await fetch(`/api/yahoo-finance?symbol=${encodeURIComponent(symbol)}&period=6mo&interval=1wk`);
+
   if (!response.ok) {
-    throw new Error(`Failed to fetch data: ${response.status}`);
+    const errorData = await response.json().catch(() => ({ error: 'Failed to fetch data' }));
+    throw new Error(errorData.error || `HTTP ${response.status}`);
   }
-  
+
   const data = await response.json();
-  
-  if (data.chart?.error) {
-    throw new Error(data.chart.error.description || 'Yahoo Finance API error');
-  }
-  
   return data;
 };
 
@@ -60,7 +56,7 @@ export const formatStockData = (stockData: any): ApexOHLC[] => {
 
     const timestamps = result.timestamp || [];
     const quotes = result.indicators?.quote?.[0];
-    
+
     if (!quotes) return formattedData;
 
     const { open, high, low, close } = quotes;
@@ -70,7 +66,7 @@ export const formatStockData = (stockData: any): ApexOHLC[] => {
       const h = high?.[i];
       const l = low?.[i];
       const c = close?.[i];
-      
+
       // Skip if any value is null/undefined
       if ([o, h, l, c].every((n) => n != null && Number.isFinite(n))) {
         formattedData.push({
@@ -94,24 +90,24 @@ const LiveChart: React.FC<StockChartProps> = ({ symbol }) => {
   useEffect(() => {
     if (!symbol) return;
     let cancelled = false;
-    
+
     setLoading(true);
     setError(null);
     setStockData(null);
-    
+
     fetchStockData(symbol)
-      .then((data) => {
-        if (!cancelled) {
-          setStockData(data);
-          setLoading(false);
-        }
-      })
-      .catch((err: any) => {
-        if (!cancelled) {
-          setError(err?.message ?? String(err));
-          setLoading(false);
-        }
-      });
+        .then((data) => {
+          if (!cancelled) {
+            setStockData(data);
+            setLoading(false);
+          }
+        })
+        .catch((err: any) => {
+          if (!cancelled) {
+            setError(err?.message ?? String(err));
+            setLoading(false);
+          }
+        });
 
     return () => {
       cancelled = true;
@@ -135,12 +131,12 @@ const LiveChart: React.FC<StockChartProps> = ({ symbol }) => {
   const series = [{ data: seriesData }];
 
   return (
-    <ReactApexChart
-      series={series as any}
-      options={candleStickOptions as any}
-      type="candlestick"
-      height={350}
-    />
+      <ReactApexChart
+          series={series as any}
+          options={candleStickOptions as any}
+          type="candlestick"
+          height={350}
+      />
   );
 };
 
