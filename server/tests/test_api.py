@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-import app as server_app
+import server.main as server_app
 
 
 @pytest.fixture
@@ -91,7 +91,7 @@ def test_screen_stocks_endpoint(client):
     # set up two symbols where only one meets threshold
     payload = ['AAPL', 'MSFT']
     # Prefect-wrapped function in code may expect different param names; monkeypatch a tolerant stub
-    import app as server_app
+    import server.main as server_app
 
     async def _fake_screen(*args, **kwargs):
         # accept either positional or keyword symbols
@@ -115,7 +115,7 @@ def test_screen_stocks_endpoint(client):
 
 def test_chat_error_returns_500(client, monkeypatch):
     # Use the client fixture's orchestrator via monkeypatch
-    import app as server_app
+    import server.main as server_app
 
     class E:
         async def chat(self, *args, **kwargs):
@@ -128,7 +128,7 @@ def test_chat_error_returns_500(client, monkeypatch):
 
 
 def test_get_recent_news_error(client, monkeypatch):
-    import app as server_app
+    import server.main as server_app
 
     class VS:
         def get_recent_documents(self, symbol, hours, data_types):
@@ -140,7 +140,7 @@ def test_get_recent_news_error(client, monkeypatch):
 
 
 def test_websocket_updates(client, monkeypatch):
-    import app as server_app
+    import server.main as server_app
 
     # make sleep a no-op so the inner loop won't delay
     async def _nosleep(_):

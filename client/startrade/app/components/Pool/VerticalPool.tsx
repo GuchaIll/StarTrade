@@ -118,6 +118,14 @@ export default function PoolBoard() {
     }
   };
 
+  const removeEntry = (entryId: string) => {
+    const updatedPools = pools.map(p => ({
+      ...p,
+      entries: p.entries.filter(e => e.id !== entryId),
+    }));
+    setPools(updatedPools);
+  };
+
   return (
     <DndContext
       collisionDetection={rectIntersection}
@@ -137,7 +145,7 @@ export default function PoolBoard() {
             >
               <Pool id={pool.id} name={pool.name} >
                 {/* inner container ensures consistent spacing and fixed entry height.
-                    Each entry can grow in width but not height. */}
+                    Each entry is rendered directly as a PoolEntry (no extra tile wrapper) */}
                 <div className="flex flex-col gap-3 p-2">
                   {pool.entries.map(entry => (
                     <div
@@ -145,14 +153,13 @@ export default function PoolBoard() {
                       className="h-12 min-h-0 flex items-center flex-shrink-0"
                       aria-hidden={false}
                       style={{
-                        // prevent wrapping from increasing height, keep consistent entry height
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                       }}
                     >
                       <div className="w-full flex items-center">
-                        <PoolEntry id={entry.id} label={entry.label} />
+                        <PoolEntry id={entry.id} label={entry.label} onRemove={removeEntry} />
                       </div>
                     </div>
                   ))}
@@ -184,8 +191,8 @@ export default function PoolBoard() {
       {typeof window !== 'undefined' && createPortal(
         <DragOverlay className="drag-overlay">
           {activeEntry ? (
-            <div className="pool-entry rounded-full px-3 py-2 text-sm font-medium min-h-[36px] flex items-center justify-center text-center break-words hyphens-auto">
-              {activeEntry.label}
+            <div className="bg-white/5 px-3 py-2 rounded-md flex items-center justify-between min-h-[36px]">
+              <span className="text-sm font-medium truncate">{activeEntry.label}</span>
             </div>
           ) : null}
         </DragOverlay>,

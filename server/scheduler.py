@@ -15,27 +15,55 @@ class TradingSystemOrchestrator:
 
     def __init__(self, config: Dict):
         self.config = config
+        # Create ingestion agents with explicit keyword args matching DataSource
+        self.yfinance_agent = YFinanceAgent(DataSource(
+            name="yfinance",
+            url=None,
+            API_key=None,
+            rate_limit=60,
+            priority=1
+        ))
 
-        self.yfinance_agent = YFinanceAgent(DataSource("yfinance", None, 60, 1))
         self.alpha_vantage_agent = AlphaVantageAgent(
-            DataSource("alpha_vantage", config['alpha_vantage_api_key'], 5, 5))
+            DataSource(
+                name="alpha_vantage",
+                url=None,
+                API_key=config.get('alpha_vantage_api_key'),
+                rate_limit=5,
+                priority=5
+            )
+        )
+
         self.twitter_agent = TwitterAgent(
-            DataSource("twitter", config['twitter_api_key'], 5, 5))
-        
+            DataSource(
+                name="twitter",
+                url=None,
+                API_key=config.get('twitter_api_key'),
+                rate_limit=5,
+                priority=5
+            )
+        )
+
         self.sentiment_agent = SentimentAnalysisAgent()
         self.vector_store = VectorStoreManager(
-            api_key=config['pinecone_api_key']
+            api_key=config.get('pinecone_api_key')
         )
+
+        # create portfolio manager before LLM agent so it can be passed in
+        from PortfolioManager.portfolio_manager import PortfolioManager
+        self.portfolio_manager = PortfolioManager(self.vector_store, self.sentiment_agent)
+
+        # InvestmentAdvisorAgent expects (vector_store, portfolio_manager, groq_api_key)
         self.llm_agent = InvestmentAdvisorAgent(
-            groq_api_key=config['groq_api_key'],
-            vector_store=self.vector_store,
-            sentiment_agent=self.sentiment_agent,
-            portfolio_manager=self.portfolio_manager
+            self.vector_store,
+            self.portfolio_manager,
+            groq_api_key=config.get('groq_api_key')
         )
         
 @task(name="Fetch Market Data", retries = 3, retry_delay_seconds=60)
 async def fetch_market_data(symbols: List[str], agents: List) -> list[Dict]:
     """Fetch market data from multiple agents"""
+    print(f"[scheduler] fetch_market_data starting for {len(symbols)} symbols with {len(agents)} agents")
     all_data = []
     
     #fetch data concurrently from agents
@@ -46,14 +74,17 @@ async def fetch_market_data(symbols: List[str], agents: List) -> list[Dict]:
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     for result in results:
-        if not isinstance(result, Exception):
-            all_data.extend(result)
+        if isinstance(result, Exception):
+            print(f"[scheduler][error] fetch_market_data agent error: {result}")
+            continue
+        all_data.extend(result)
 
     return all_data
 
 @task(name="Analyze Sentiment")
 async def analyze_sentiment(data: List[Dict], sentiment_agent: SentimentAnalysisAgent) -> List[Dict]:
     """Analyze sentiment for all documents"""
+    print(f"[scheduler] analyze_sentiment starting for {len(data)} items")
     enriched_data = []
     for item in data:
         if item['data_type'] in ['news', 'social_media']:
@@ -91,13 +122,20 @@ async def analyze_sentiment(data: List[Dict], sentiment_agent: SentimentAnalysis
                         'sentiment_score': sentiment['confidence']
                     })
     
+    print(f"[scheduler] analyze_sentiment completed, {len(enriched_data)} items enriched")
     return enriched_data
 
 @task(name="Store in Vector Database")
 async def store_embeddings(data: List[Dict], vector_store: VectorStoreManager) -> Dict:
     """Store documents in vector database"""
-    result = await vector_store.upsert_documents(data)
-    return result
+    print(f"[scheduler] store_embeddings starting for {len(data)} documents")
+    try:
+        result = await vector_store.upsert_documents(data)
+        print(f"[scheduler] store_embeddings completed, upserted={result.get('upserted', 'unknown')}")
+        return result
+    except Exception as e:
+        print(f"[scheduler][error] store_embeddings failed: {e}")
+        raise
 
 @task(name="Analyze Portfolio")
 async def analyze_portfolio(
@@ -105,8 +143,14 @@ async def analyze_portfolio(
     portfolio_manager: PortfolioManager
 ) -> Dict:
     """Analyze existing portfolio"""
-    analysis = await portfolio_manager.monitor_existing_positions(portfolio)
-    return analysis
+    print(f"[scheduler] analyze_portfolio for {len(portfolio)} positions")
+    try:
+        analysis = await portfolio_manager.monitor_existing_positions(portfolio)
+        print(f"[scheduler] analyze_portfolio completed")
+        return analysis
+    except Exception as e:
+        print(f"[scheduler][error] analyze_portfolio failed: {e}")
+        raise
 
 @task(name = "Screen new Stocks")
 async def screen_new_stocks(
@@ -114,6 +158,7 @@ async def screen_new_stocks(
     portfolio_manager: PortfolioManager,
     min_score: float = 65) -> List [Dict]:
     """Screen new stocks for potential investment"""
+    print(f"[scheduler] screen_new_stocks starting for {len(candidate_symbols)} candidates min_score={min_score}")
     recommendations = []
 
     for symbol in candidate_symbols:
@@ -122,7 +167,7 @@ async def screen_new_stocks(
             if analysis['composite_score'] >= min_score:
                 recommendations.append(analysis)
         except Exception as e:
-            print(f"Error analyzing {symbol}: {e}")
+            print(f"[scheduler][error] Error analyzing {symbol}: {e}")
 
     #Sort by composite score
     recommendations.sort(key = lambda x: x['composite_score'], reverse = True)

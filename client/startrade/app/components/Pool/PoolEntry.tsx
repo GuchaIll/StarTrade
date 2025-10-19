@@ -5,16 +5,17 @@ import { CSS } from '@dnd-kit/utilities';
 interface PoolEntryProps {
   id: string;
   label: string;
+  onRemove?: (id: string) => void;
 }
 
-export default function PoolEntry({ id, label }: PoolEntryProps) {
-  const { 
-    attributes, 
-    listeners, 
-    setNodeRef, 
-    transform, 
-    transition, 
-    isDragging 
+export default function PoolEntry({ id, label, onRemove }: PoolEntryProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
   } = useSortable({ id });
 
   const style = {
@@ -24,16 +25,24 @@ export default function PoolEntry({ id, label }: PoolEntryProps) {
   };
 
   return (
-    <button
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`pool-entry rounded-full px-3 py-2 text-sm font-medium cursor-grab active:cursor-grabbing select-none min-h-[36px] flex items-center justify-center text-center break-words hyphens-auto ${
-        isDragging ? 'dragging' : ''
-      }`}
+      className={`bg-white/5 px-3 py-2 rounded-md flex items-center justify-between cursor-grab active:cursor-grabbing select-none min-h-[36px]`}
     >
-      {label}
-    </button>
+      <span className="text-sm font-medium truncate">{label}</span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onRemove) onRemove(id);
+        }}
+        aria-label={`Remove ${label}`}
+        className="ml-2 text-red-400 hover:text-red-300"
+      >
+        ×
+      </button>
+    </div>
   );
 }

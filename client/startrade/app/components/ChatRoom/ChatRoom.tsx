@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react'
 import MessageEntry from './MessageEntry'
+import { tradingAPI } from '../../hooks/api'
 import { useTheme } from '../ThemeContext'
 
 const ChatRoom: React.FC = () => {
@@ -16,18 +17,44 @@ const ChatRoom: React.FC = () => {
     const userMsg = { role: 'user', author: 'You', message: draft, notifications: [], links: [], timestamp: new Date().toLocaleTimeString() }
     setMessages(prev => [...prev, userMsg])
     setDraft('')
-
-    // Simulate agent loading: append a placeholder agent loading message, then replace with response
+    // Append a loading message for the agent
     const loadingMsg = { role: 'agent', author: 'Agent', message: '...', notifications: [], links: [], timestamp: new Date().toLocaleTimeString(), loading: true, serverActivity: 'analyzing portfolio' }
-    setMessages(prev => [...prev, userMsg, loadingMsg])
+    setMessages(prev => [...prev, loadingMsg])
 
-    // Replace loading message with actual response after delay
-    setTimeout(() => {
-      setMessages(prev => {
-        const withoutLoading = prev.filter(m => !(m.loading && m.role === 'agent'))
-        return [...withoutLoading, { role: 'agent', author: 'Agent', message: `Here are some quick notes on ${draft}`, notifications: [], links: [], timestamp: new Date().toLocaleTimeString() }]
-      })
-    }, 1800)
+    // Call the backend chat API
+    ;(async () => {
+      try {
+        // conversationId can be added/managed here if you want to keep context across messages
+        const payload = {
+          message: draft,
+          portfolio: [],
+          // conversation_id: conversationId // if you implement a conversation state
+        }
+
+        const response = await tradingAPI.chat(payload)
+
+        // Try to extract meaningful text from the response
+        let replyText = ''
+        if (!response) replyText = 'No response from server.'
+        else if (typeof response === 'string') replyText = response
+        else if (response.message) replyText = response.message
+        else if (response.answer) replyText = response.answer
+        else if (response.text) replyText = response.text
+        else replyText = JSON.stringify(response)
+
+        setMessages(prev => {
+          // remove the loading message
+          const withoutLoading = prev.filter(m => !(m.loading && m.role === 'agent'))
+          return [...withoutLoading, { role: 'agent', author: 'Agent', message: replyText, notifications: [], links: [], timestamp: new Date().toLocaleTimeString() }]
+        })
+      } catch (err: any) {
+        const errMsg = err?.message || 'Request failed'
+        setMessages(prev => {
+          const withoutLoading = prev.filter(m => !(m.loading && m.role === 'agent'))
+          return [...withoutLoading, { role: 'agent', author: 'Agent', message: `Error: ${errMsg}`, notifications: [], links: [], timestamp: new Date().toLocaleTimeString() }]
+        })
+      }
+    })()
   }
 
   const containerRef = useRef<HTMLDivElement | null>(null)

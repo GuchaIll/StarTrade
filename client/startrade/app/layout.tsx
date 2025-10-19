@@ -44,17 +44,36 @@ export default async function RootLayout({
                 if (existing) return
               } catch (e) {}
 
+              // Helper to read a cookie value by name
+              function readCookie(name) {
+                try {
+                  var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+                  if (match) return decodeURIComponent(match[2])
+                } catch (e) {}
+                return null
+              }
+
               function getInitialTheme() {
+                // 1) Prefer cookie set by our app (synchronous and survives redirects)
+                try {
+                  var cookieTheme = readCookie('theme')
+                  if (cookieTheme === 'light' || cookieTheme === 'dark') return cookieTheme
+                } catch (e) {}
+
+                // 2) Then try localStorage
                 try {
                   var persistedTheme = localStorage.getItem('theme')
-                  if (persistedTheme) return persistedTheme
+                  if (persistedTheme === 'light' || persistedTheme === 'dark') return persistedTheme
                 } catch (e) {}
-                var prefersDark = false
+
+                // 3) Finally fall back to system preference
                 try {
-                  prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-                } catch (e) {}
-                return prefersDark ? 'dark' : 'light'
+                  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+                } catch (e) {
+                  return 'light'
+                }
               }
+
               var theme = getInitialTheme()
               document.documentElement.classList.add(theme)
               document.documentElement.setAttribute('data-theme', theme)

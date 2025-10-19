@@ -8,6 +8,30 @@ const Navbar = () => {
   const { mode } = useTheme()
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
+  // Persist theme synchronously: localStorage, DOM and cookie
+  const persistTheme = (themeMode: 'light' | 'dark') => {
+    try {
+      localStorage.setItem('theme', themeMode)
+    } catch (e) {
+      // ignore
+    }
+    try {
+      document.documentElement.classList.remove('light', 'dark')
+      document.documentElement.classList.add(themeMode)
+      document.documentElement.setAttribute('data-theme', themeMode)
+    } catch (e) {
+      // ignore
+    }
+    try {
+      const expires = new Date()
+      expires.setDate(expires.getDate() + 30)
+      const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+      document.cookie = `theme=${themeMode}; path=/; expires=${expires.toUTCString()}; SameSite=Lax${secure}`
+    } catch (e) {
+      // ignore
+    }
+  }
+
   const toggleDropdown = (menu: string) => {
     setOpenDropdown(openDropdown === menu ? null : menu)
   }
@@ -183,7 +207,10 @@ const Navbar = () => {
         if (!isAuthenticated) {
           return (
             <button
-              onClick={() => loginWithRedirect()}
+              onClick={() => {
+                persistTheme(mode)
+                loginWithRedirect()
+              }}
               className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer"
             >
               <div className="grid mr-4 place-items-center">
@@ -199,7 +226,10 @@ const Navbar = () => {
 
         return (
           <button
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            onClick={() => {
+              persistTheme(mode)
+              logout({ logoutParams: { returnTo: window.location.origin } })
+            }}
             className="navbar-item flex items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start cursor-pointer"
           >
             <div className="grid mr-4 place-items-center">

@@ -68,7 +68,7 @@ html, body, #__next {
   padding: 0;
   overflow: hidden;
   /* keep a solid fallback color */
-  background-color: rgb(255, 19, 19);
+  background-color: rgb(79, 79, 79);
   /* Use public/outer-space-background.jpg as the site background */
   background-image: url('/client/startrade/public/space.jpg');
   background-size: cover;

@@ -39,8 +39,26 @@ export default function Pool({ id, name, children, maxHeight }: PoolProps) {
       <div className="flex flex-col">
         <h2 className="pool-title mb-2 text-md sticky top-0 bg-inherit pb-2 z-10">{name}</h2>
         <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-min">
+          {/* Render selected stocks first as pool tiles (non-draggable entries created via dropdown) */}
+          {selectedStocks.map((ticker) => (
+            <div key={`selected-${ticker}`} className="min-w-0 w-full">
+              <div className="bg-white/5 px-3 py-2 rounded-md flex items-center justify-between">
+                <span className="text-sm font-medium truncate">{ticker}</span>
+                <button
+                  className="ml-2 text-sm text-red-400 hover:text-red-300"
+                  onClick={() => removeStock(ticker)}
+                  aria-label={`Remove ${ticker}`}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* Render children (should be PoolEntry components) directly so they control styling
+              Avoid wrapping children in an extra tile to prevent double-wrapping and broken drag visuals */}
           {React.Children.map(children, (child, i) => (
-            <div key={i} className="min-w-0 w-full">
+            <div key={`child-${i}`} className="min-w-0 w-full">
               {child}
             </div>
           ))}

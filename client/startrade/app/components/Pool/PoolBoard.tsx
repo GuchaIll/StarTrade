@@ -118,6 +118,14 @@ export default function PoolBoard() {
     }
   };
 
+  const removeEntry = (entryId: string) => {
+    const updatedPools = pools.map(p => ({
+      ...p,
+      entries: p.entries.filter(e => e.id !== entryId),
+    }));
+    setPools(updatedPools);
+  };
+
   return (
     <DndContext
       collisionDetection={rectIntersection}
@@ -135,7 +143,7 @@ export default function PoolBoard() {
             >
               <Pool id={pool.id} name={pool.name}>
                 {pool.entries.map(entry => (
-                  <PoolEntry key={entry.id} id={entry.id} label={entry.label} />
+                  <PoolEntry key={entry.id} id={entry.id} label={entry.label} onRemove={removeEntry} />
                 ))}
               </Pool>
             </SortableContext>
@@ -161,8 +169,8 @@ export default function PoolBoard() {
       {typeof window !== 'undefined' && createPortal(
         <DragOverlay className="drag-overlay">
           {activeEntry ? (
-            <div className="pool-entry rounded-full px-3 py-2 text-sm font-medium min-h-[36px] flex items-center justify-center text-center break-words hyphens-auto">
-              {activeEntry.label}
+            <div className="bg-white/5 px-3 py-2 rounded-md flex items-center justify-between min-h-[36px]">
+              <span className="text-sm font-medium truncate">{activeEntry.label}</span>
             </div>
           ) : null}
         </DragOverlay>,
