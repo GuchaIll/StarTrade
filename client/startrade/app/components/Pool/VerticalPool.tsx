@@ -124,34 +124,56 @@ export default function PoolBoard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 gap-6 p-6 ">
+  {/* stacked vertically; each pool limited to max-height < 200px with scroll when overflow */}
+  <div className="flex flex-col gap-6 p-6 w-full">
 
         {pools.map(pool => (
-          <div key={`wrap-${pool.id}`} className="">
+          // wrapper enforces vertical stacking and max height per pool
+          <div key={`wrap-${pool.id}`} className="w-full">
             <SortableContext
               key={pool.id}
               items={pool.entries.map(e => e.id)}
               strategy={rectSortingStrategy}
             >
               <Pool id={pool.id} name={pool.name}>
-                {pool.entries.map(entry => (
-                  <PoolEntry key={entry.id} id={entry.id} label={entry.label} />
-                ))}
+                {/* inner container ensures consistent spacing and fixed entry height.
+                    Each entry can grow in width but not height. */}
+                <div className="flex flex-col gap-3 p-2">
+                  {pool.entries.map(entry => (
+                    <div
+                      key={entry.id}
+                      className="h-12 min-h-0 flex items-center flex-shrink-0"
+                      aria-hidden={false}
+                      style={{
+                        // prevent wrapping from increasing height, keep consistent entry height
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      <div className="w-full flex items-center">
+                        <PoolEntry id={entry.id} label={entry.label} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </Pool>
             </SortableContext>
           </div>
         ))}
 
    
-        {/* Bottom full-width pool */}
-        <div className="col-span-1 lg:col-span-2">
+        {/* Bottom full-width pool - third pool in the vertical stack */}
+  <div className="w-full">
           <SortableContext
             key={'bottom-pool'}
             items={[]}
             strategy={rectSortingStrategy}
           >
             <Pool id={'recommendations'} name={'Recommendations'}>
-              {/* empty on purpose - populate as needed */}
+              <div className="flex flex-col gap-3 p-2">
+                {/* empty on purpose - populate as needed */}
+              </div>
             </Pool>
           </SortableContext>
         </div>
@@ -172,4 +194,3 @@ export default function PoolBoard() {
     </DndContext>
   );
 }
-
