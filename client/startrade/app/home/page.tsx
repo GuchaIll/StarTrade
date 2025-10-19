@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import localFont from "next/font/local";
 
@@ -9,7 +9,6 @@ const myFont = localFont({
   display: "swap",
   variable: "--font-myfont", // optional for CSS variable use
 });
-
 
 interface Star {
   id: number;
@@ -21,6 +20,7 @@ interface Star {
   angle: number;
   name: string;
   image: string;
+  brightness: number;
 }
 
 export default function Home() {
@@ -28,29 +28,30 @@ export default function Home() {
   const [stars, setStars] = useState<Star[]>([]);
 
   useEffect(() => {
+
+
     const starCount = 20;
     const baseRadius = 50;
     const orbitStep = 30;
-    const companies = ["AAPL", "GOOGL", "AMZN", "MSFT", "TSLA", "META", "NFLX", "NVDA", "ADBE", "INTC", "CSCO", "ORCL", "IBM", "SAP", "CRM", "UBER", "LYFT", "TWTR", "SNAP", "SHOP"];
-    const randomized = companies
-      .map((value: string) => ({ value, sort: Math.random() }))
-      .sort((a: {value: string; sort: number}, b: {value: string; sort: number}) => a.sort - b.sort)
-      .map(({value}: {value: string}) => value);
 
     // Generate star data
     const generatedStars: Star[] = Array.from({ length: starCount }).map((_, i) => {
+
+      const companies = ["AAPL", "GOOGL", "AMZN", "MSFT", "TSLA", "META", "NFLX", "NVDA", "ADBE", "INTC", "CSCO", "ORCL", "IBM", "SAP", "CRM", "UBER", "LYFT", "TWTR", "SNAP", "SHOP"];
+      const randomized = companies
+//        .map((value: string) => ({ value, sort: Math.random() }))
+ //       .sort((a: { value: string; sort: number }, b: { value: string; sort: number }) => a.sort - b.sort)
+  //      .map(({ value }) => value);
       const colorType = Math.random() * 10;
       let color = "";
       let boxShadow = "";
+      let hue = 240 + (12 * colorType); // from blue to purple
+      let brightness = 80 - 60 * colorType / 10;
 
-      if (colorType > 5) {
+      if (colorType > 0.05) {
         // light blue
-        color = "hsla(244, 69%, 59%, 0.85)";
-        boxShadow = "0 0 8px hsl(244, 69%, 59%)";
-      } else if (colorType > 0.05) {
-        // dark red
-        color = "hsla(0, 72%, 55%, 0.85)";
-        boxShadow = "0 0 8px hsl(0, 72%, 55%)";
+        color = `hsla(${hue}, 100%, ${brightness}%, 0.85)`;
+        boxShadow = `0 0 8px hsl(${hue}, 70%, ${brightness}%)`;
       } else {
         // black with yellow outline
         color = "black";
@@ -68,6 +69,7 @@ export default function Home() {
         boxShadow,
         angle: (i / (starCount * 0.4)) * Math.PI * 2 + 180,
         name: randomized[i],
+        brightness,
       };
     });
 
@@ -128,16 +130,16 @@ export default function Home() {
         {/* Core glow */}
         <div
           className="absolute rounded-full"
-          // style={{
-          //   width: "300px",
-          //   height: "300px",
-          //   top: "50%",
-          //   left: "50%",
-          //   transform: "translate(-130px, -240px)",
-          //   background: "radial-gradient(circle, white 0%, indigo 80%, transparent 100%)",
-          //   filter: "blur(60px)",
-          //   zIndex: 0,
-          // }}
+        // style={{
+        //   width: "300px",
+        //   height: "300px",
+        //   top: "50%",
+        //   left: "50%",
+        //   transform: "translate(-130px, -240px)",
+        //   background: "radial-gradient(circle, white 0%, indigo 80%, transparent 100%)",
+        //   filter: "blur(60px)",
+        //   zIndex: 0,
+        // }}
         />
 
         {/* Orbiting Stars */}
@@ -161,12 +163,12 @@ export default function Home() {
                     style={{
                       width: `${star.size}px`,
                       height: `${star.size}px`,
-                      background: star.color == "hsla(244, 69%, 59%, 1.00)" ? `radial-gradient(circle, rgba(214, 110, 252, 0.84) 0%, ${star.color} 50%, rgba(0,0,0,0.8) 100%)` : `radial-gradient(circle, rgba(255, 209, 173, 0.85) 0%, ${star.color} 50%, rgba(0,0,0,0.8) 100%)`,
+                      background: `radial-gradient(circle, hsla(26, 100%, ${star.brightness}%, 0.85) 0%, ${star.color} 50%, rgba(0, 0, 0, 0.8) 100%)`,
                       boxShadow: `0 0 ${star.size / 1.5}px ${star.color}`,
                     }}
                   />)}
               </div>
-              
+
               <div key={`label-${star.id}`} className={`absolute text-purple-300 text-sm select-none pointer-events-none ${myFont.className}`} style={{ zIndex: 10 }}>
                 {star.name}
               </div>
